@@ -1,9 +1,10 @@
 #based on spzZapHistory and ZapHistoryBrowser mod aka Uchkun
 #created by Vasiliks 09.2015
+#Modified by TomTelos for Graterlia OS
 #r0.1_r3  PLI version
 from . import _
 from Components.ActionMap import ActionMap
-from Components.config import config, ConfigEnableDisable, ConfigInteger, ConfigSelection, ConfigSubsection, getConfigListEntry
+from Components.config import config, ConfigEnableDisable, ConfigInteger, ConfigSelection, ConfigSubsection, getConfigListEntry, ConfigYesNo
 from Components.ConfigList import ConfigListScreen
 from Components.Label import Label
 from Components.MenuList import MenuList
@@ -15,7 +16,7 @@ from Screens.ChannelSelection import ChannelSelection
 from Screens.ParentalControlSetup import ProtectedScreen
 from Screens.Screen import Screen
 from time import localtime, time
-from Tools.Directories import fileExists, resolveFilename, SCOPE_SKIN_IMAGE, SCOPE_CURRENT_SKIN
+from Tools.Directories import fileExists, resolveFilename, SCOPE_SKIN_IMAGE, SCOPE_CURRENT_SKIN, SCOPE_PLUGINS
 
 color = [("0xffffff", _("white")),
 	    ("0xc0c0c0", _("lightgrey")),
@@ -42,6 +43,8 @@ config.plugins.vZapHistory = ConfigSubsection()
 config.plugins.vZapHistory.enable = ConfigSelection(default='on', choices=[('off', _('disabled')), ('on', _('enabled')), ('parental_lock', _('disabled at parental lock'))])
 config.plugins.vZapHistory.maxEntries = ConfigInteger(default=20, limits=(2, 60))
 config.plugins.vZapHistory.viewMode = ConfigSelection(default='picons', choices=[('menu', _('standard')), ('picons', _('with picons'))])
+config.plugins.vZapHistory.enabled = ConfigYesNo(default=True)
+config.plugins.vZapHistory.skin = ConfigYesNo(default=False)
 config.plugins.vZapHistory.alignment = ConfigSelection(default='left', choices=[('left', _('left')), ('center', _('center')), ('right', _('right'))])
 config.plugins.vZapHistory.autoZap = ConfigEnableDisable(default=False)
 config.plugins.vZapHistory.namecolor = ConfigSelection(default="0xffcc33", choices = color)
@@ -354,6 +357,7 @@ class vZapHistoryConf(ConfigListScreen, Screen):
         self['key_red'] = Label(_('Cancel'))
         self['key_green'] = Label( _('Save'))
         ConfigListScreen.__init__(self, [getConfigListEntry(_('Enable zap history:'), config.plugins.vZapHistory.enable),
+         getConfigListEntry(_('Alternative skin:'), config.plugins.vZapHistory.skin),
          getConfigListEntry(_('View mode:'), config.plugins.vZapHistory.viewMode),
          getConfigListEntry(_('Alignment list:'), config.plugins.vZapHistory.alignment),
          getConfigListEntry(_('Maximum zap history entries:'), config.plugins.vZapHistory.maxEntries),
@@ -383,8 +387,16 @@ class vZapHistoryConf(ConfigListScreen, Screen):
         self.close()
 
 class vZapHistoryMenu(vZapHistory):
-    skin = """
-    <screen name="vZapHistoryMenu" position="center,center" size="860,540" title="%s">
+    def __init__(self, session, servicelist):
+        vZapHistory.__init__(self, session, servicelist)
+        self.skin = skin1
+        if config.plugins.vZapHistory.skin.value:
+            if fileExists('%sExtensions/vZapHistory/skin2.xml' % resolveFilename(SCOPE_PLUGINS)):
+                with open('%sExtensions/vZapHistory/skin2.xml' % resolveFilename(SCOPE_PLUGINS),'r') as alternative_skin:
+                    self.skin = alternative_skin.read()
+                alternative_skin.close()
+skin1 = """
+<screen name="vZapHistoryMenu" position="center,center" size="860,540" title="%s">
       <widget name="list" position="5,45" size="850,490" scrollbarMode="showOnDemand" transparent="1"/>
       <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/vZapHistory/buttons/red.png" position="20,7" size="160,30" transparent="1" alphatest="blend" />
       <ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/vZapHistory/buttons/green.png" position="240,7" size="160,30" transparent="1" alphatest="blend" />
@@ -394,10 +406,7 @@ class vZapHistoryMenu(vZapHistory):
       <widget name="key_green" position="240,9" zPosition="1" size="160,25" font="Regular; 16" valign="center" halign="center" transparent="1" />
       <widget name="key_yellow" position="460,9" zPosition="1" size="160,25" font="Regular; 16" valign="center" halign="center" transparent="1" />
       <widget name="key_menu" position="680,9" zPosition="1" size="160,25" font="Regular; 16" valign="center" halign="center" transparent="1" />
-    </screen>""" % _('ZapHistory')
-
-    def __init__(self, session, servicelist):
-        vZapHistory.__init__(self, session, servicelist)
+</screen>""" % _('ZapHistory')
 
 def main(session, servicelist, **kwargs):
     session.open(vZapHistoryMenu, servicelist)

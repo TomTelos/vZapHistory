@@ -1,0 +1,3 @@
+<screen name="vZapHistoryMenu" position="center,490" size="860,220" title="ZapHistory">
+      <widget name="list" position="5,5" size="850,210" scrollbarMode="showOnDemand" transparent="1"/>
+ </screen>
