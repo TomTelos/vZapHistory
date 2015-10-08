@@ -11,6 +11,7 @@ from Components.MenuList import MenuList
 from Components.MultiContent import MultiContentEntryProgress, MultiContentEntryText, MultiContentEntryPixmapAlphaBlend
 from enigma import BT_SCALE, eListboxPythonMultiContent, eServiceCenter, eServiceReference, eTimer, gFont, loadPNG, RT_HALIGN_LEFT, RT_HALIGN_CENTER, RT_HALIGN_RIGHT, RT_WRAP, RT_VALIGN_CENTER
 from Components.ParentalControl import parentalControl
+from Components.Renderer.Picon import getPiconName
 from Plugins.Plugin import PluginDescriptor
 from Screens.ChannelSelection import ChannelSelection
 from Screens.ParentalControlSetup import ProtectedScreen
@@ -165,21 +166,8 @@ class vZapHistory(Screen, ProtectedScreen):
                 serviceName = serviceName.split('::')[0] + ':'
         except:
             pass
-        serviceName = serviceName.toString()
-        serviceName = '_'.join(serviceName.split(':', 10)[:10])
-        searchPaths = ['/usr/share/enigma2/picon/', '/media/hdd/picon/', '/media/usb/picon/', '/media/ba/picon/', '/media/sda1/picon/', '/media/sdb1/picon/', '/media/cf/picon/']
-        for path in searchPaths:
-            pngname = path + serviceName + '.png'
-            if fileExists(pngname):
-                return pngname
-            pngname = path + 'picon_default.png'
-            if fileExists(pngname):
-                return pngname
-        pngname = resolveFilename(SCOPE_CURRENT_SKIN, 'picon_default.png')
-        if fileExists(pngname):
-            return pngname
-        else:
-            return resolveFilename(SCOPE_SKIN_IMAGE, 'skin_default/picon_default.png')
+        pngname = getPiconName(serviceName.toString())
+        return pngname
 
     def buildList(self):
         self['list'].l.setItemHeight(70)
